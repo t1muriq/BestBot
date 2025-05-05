@@ -1,0 +1,42 @@
+services:
+  bot:
+    build: .
+    container_name: weather_tg_bot
+    depends_on:
+      - redis
+      - postgres
+    env_file:
+      - .env
+    restart: always
+    environment:
+    #ТИМУР ПЕРЕПЕШИ ПАРОЛЬ В .env!! как нить потом
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://postgres:123@postgres:5432/weather_bot
+    volumes:
+      - ./logs:/app/logs
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      
+#ТИМУР ПЕРЕПЕШИ ПАРОЛЬ В .env!! как нить потом
+  postgres:
+    image: postgres:15-alpine
+    container_name: weather_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=weather_bot
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  redis_data:
+  postgres_data:
