@@ -1,3 +1,6 @@
+# Проект нереальный короче
+# Универсальный бот для всего на свете 
+
 import redis
 import json
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -11,23 +14,24 @@ from models import User, SessionLocal
 from migrations import run_migrations
 from models import init_db
 
-
-# Настройка логирования
+#Вот эта тема для того, чтобы логи писались в разные файлы по датам
 from logging.handlers import RotatingFileHandler
 
+#Здесь мы короче инициализируем базу данных
 init_db()
 
-# Создаем абсолютный путь к папке логов
+# Создаем путь к папке логов, я хз почему то иногда не разбивается на разные файлы
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 log_filename = os.path.join(log_dir, 'bot.log')
 
-# Настраиваем корневой логгер сначала с базовой конфигурацией
+# Показываем как именно писать логи суета суета
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 
+#Сам экземпляр логгера
 logger = logging.getLogger(__name__)
 
 # Создаем директорию для логов
@@ -35,7 +39,7 @@ try:
     os.makedirs(log_dir, exist_ok=True)
     logger.info(f"Создана директория для логов: {log_dir}")
 
-    # Создаем RotatingFileHandler
+    # Создаем RotatingFileHandler 
     file_handler = RotatingFileHandler(
         log_filename,
         maxBytes=10*1024*1024,  # Максимальный размер файла - 10MB
@@ -54,21 +58,24 @@ except Exception as e:
     logger.error(f"Ошибка при настройке логирования: {e}")
     sys.exit(1)
 
+#Здесь я засунул эти токены в .env (туда пароль надо тоже засунуть)
 TOKEN = os.getenv("API_TOKEN")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
-# Redis configuration
+# Redis конфигурация, короче кеш каждые 10 минут
 REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 CACHE_EXPIRATION = 600  # 10 minutes
 
-# Initialize Redis client
+# Инициализируем Redis 
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
+#это на будущее, но хз, мне кажется не будем юзать
 PATH_TO_WEATHER_TABLE = "weather_result/weather_list.csv"
 
+#Короче если пользователь не существует, то создаем его, если существует, то обновляем его
 async def save_or_update_user(user):
-    """Сохранение или обновление информации о пользователе"""
+    """Жестко юзаю тройные кавычки типо шарю WW"""
     db = SessionLocal()
     try:
         # Проверяем существование пользователя
@@ -114,6 +121,7 @@ async def save_or_update_user(user):
     finally:
         db.close()
 
+# функция при старте бота /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Пользователь {update.effective_user.id} запустил бота")
     await save_or_update_user(update.effective_user)
@@ -129,9 +137,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
+
 async def get_weather_data(city: str):
     logger.info(f"Запрос погоды для города: {city}")
-    # Try to get cached data
+    # Пробую взять из кеша
     cache_key = f"weather:{city.lower()}"
     cached_data = redis_client.get(cache_key)
     
@@ -139,7 +148,7 @@ async def get_weather_data(city: str):
         logger.info(f"Получены кэшированные данные для города {city}")
         return json.loads(cached_data)
     
-    # If no cached data, make API request
+    # Если в кеше нет такой суеты то в апи иду
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
     response = requests.get(url)
     data = response.json()
