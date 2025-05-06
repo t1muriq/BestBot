@@ -1,11 +1,14 @@
+#Жесткий солид короче пуляем бд постгрес в бот
+
 from models import init_db
 import logging
 
+#это типо уровень логов
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def run_migrations():
-    """Запуск миграций базы данных"""
+    """WW Запускаем миграцию бдхи"""
     try:
         logger.info('Начало миграции базы данных...')
         init_db()

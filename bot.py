@@ -14,8 +14,10 @@ from models import User, SessionLocal
 from migrations import run_migrations
 from models import init_db
 
-#Вот эта тема для того, чтобы логи писались в разные файлы по датам
+#Вот эта тема для того, чтобы логи писались в разные файлы по заполняемости, Сейчас заменю ее на по датам лол
 from logging.handlers import RotatingFileHandler
+# По датам
+from logging.handlers import TimedRotatingFileHandler
 
 #Здесь мы короче инициализируем базу данных
 init_db()
@@ -40,12 +42,23 @@ try:
     logger.info(f"Создана директория для логов: {log_dir}")
 
     # Создаем RotatingFileHandler 
-    file_handler = RotatingFileHandler(
+    # file_handler = RotatingFileHandler(
+    #     log_filename,
+    #     maxBytes=10*1024*1024,  # Максимальный размер файла - 10MB
+    #     backupCount=10,  # Хранить максимум 10 файлов
+    #     encoding='utf-8'
+    # )
+
+    #Теперь по нормальному создадим по датам( ну я хоть попробовал)
+    file_handler = TimedRotatingFileHandler(
         log_filename,
-        maxBytes=10*1024*1024,  # Максимальный размер файла - 10MB
+        when='midnight', #каждую ночь обновлять
+        interval=1,
         backupCount=10,  # Хранить максимум 10 файлов
         encoding='utf-8'
     )
+    file_handler.suffix = "%Y%m%d"
+
 
     # Настраиваем форматирование логов
     log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -82,6 +95,7 @@ async def save_or_update_user(user):
         db_user = db.query(User).filter(User.id == user.id).first()
         logger.info(f"Пользователь {user.id} существует: {db_user is not None}")
         logger.info(f"Пользователь {user.id} {user.username} {user.first_name} {user.last_name}")
+        logger.info(f"Все аттрибуты класса user {dir(user)}")
         if db_user is None:
             # Создаем нового пользователя
             logger.info(f"Создание нового пользователя с ID: {user.id}")
